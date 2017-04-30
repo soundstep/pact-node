@@ -23,14 +23,27 @@ function Verifier(providerBaseUrl, pactUrls, providerStatesUrl, providerStatesSe
 	this._options.timeout = timeout;
 }
 
+
+var newLineRegex = /\n+/;
+var commentRegex = /^\s*#.*$/mg;
+var rakeRegex = /.*bundle exec rake pact:verify.*$/m;
+
+// filterRubyResponse removes Ruby-isms from the response content
+// making the output much more human readable
+function filterRubyResponse(response) {
+	var s = response.replace(commentRegex, '');
+	s = s.replace(rakeRegex, '');
+	return s.replace(newLineRegex, "\n")
+}
+
 Verifier.prototype.verify = function () {
 	logger.info("Verifier verify()");
 	var deferred = q.defer();
 
 	var output = ''; // Store output here in case of error
 	function outputHandler(data) {
-		logger.info(data);
-		output += data;
+		logger.info(filterRubyResponse(data));
+		output += filterRubyResponse(data);
 	}
 
 	var envVars = JSON.parse(JSON.stringify(process.env)); // Create copy of environment variables

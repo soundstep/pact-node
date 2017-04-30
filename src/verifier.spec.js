@@ -53,7 +53,7 @@ describe("Verifier Spec", function () {
 					});
 				}).to.throw(Error);
 			});
-		});		
+		});
 		context("when given remote Pact URLs that don't exist", function () {
 			it("should pass through to the Pact Verifier regardless", function () {
 				expect(function () {
@@ -96,6 +96,27 @@ describe("Verifier Spec", function () {
 					});
 					return expect(verifier.verify()).to.eventually.be.resolved;
 				});
+			});
+		});
+	});
+
+	describe.only("filterRubyResponse", function () {
+		filterRubyResponse = verifier.__get__('filterRubyResponse'),
+
+		context("given an map of example good and bad values", function () {
+			it("should filter the response correctly", function () {
+				var tests = {
+					"this is a sentence with a hash # so it should be in tact":                                           "this is a sentence with a hash # so it should be in tact",
+					"this is a sentence with a hash and newline\n#so it should not be in tact":                           "this is a sentence with a hash and newline\n",
+					"this is a sentence with a ruby statement bundle exec rake pact:verify so it should not be in tact":  "",
+					"this is a sentence with a ruby statement\nbundle exec rake pact:verify so it should not be in tact": "this is a sentence with a ruby statement\n",
+					"this is a sentence with multiple new lines \n\n\n\n\nit should not be in tact":                      "this is a sentence with multiple new lines \nit should not be in tact"
+				};
+
+				for (var k in tests) {
+					var test = filterRubyResponse(k)
+					expect(test).to.eql(tests[k])
+				}
 			});
 		});
 	});
